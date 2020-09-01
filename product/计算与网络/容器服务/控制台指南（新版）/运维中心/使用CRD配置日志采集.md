@@ -46,17 +46,37 @@ spec:
 ## 日志输入类型
 ### 单行全文格式
 单行全文日志是指一行日志内容为一条完整的日志。日志服务在采集的时候，将使用换行符\n来作为一条日志日志的结束符。为了统一结构化管理，每条日志都会存在一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。具体请查看[单行文本格式](https://cloud.tencent.com/document/product/614/17421)
+
+假设一条日志原始数据为：
+```
+Tue Jan 22 12:08:15 CST 2019 Installed: libjpeg-turbo-static-1.2.90-6.el7.x86_64
+```
 LogConfig配置参考示例如下：
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
   clsDetail:
     topicId: xxxxxx-xx-xx-xx-xxxxxxxx
-    #单行日志
+    # 单行日志
     logType: minimalist_log
+```
+采集到日志服务的数据为：
+```
+__CONTENT__:Tue Jan 22 12:08:15 CST 2019 Installed: libjpeg-turbo-static-1.2.90-6.el7.x86_64
+```
+
 ### 多行全文格式
 多行全文日志是指一条完整的日志数据可能跨占多行（例如 Java  stacktrace）。在这种情况下，以换行符\n 为日志的结束标识符就显得有些不合理，为了能让日志系统明确区分开每条日志，采用首行正则的方式进行匹配，当某行日志匹配上预先设置的正则表达式，就认为是一条日志的开头，而下一个行首出现作为该条日志的结束标识符。多行全文也会设置一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。具体请查看[多行文本格式](https://cloud.tencent.com/document/product/614/17422)
+假设一条多行日志原始数据为：
+```
+2019-12-15 17:13:06,043 [main] ERROR com.test.logging.FooFactory:
+java.lang.NullPointerException
+    at com.test.logging.FooFactory.createFoo(FooFactory.java:15)
+    at com.test.logging.FooFactoryTest.test(FooFactoryTest.java:11)
+```
 LogConfig配置的参考如下：
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -67,40 +87,96 @@ spec:
     extractRule:
       #只有以日期时间开头的行才被认为是新一条日志的开头，否则就添加换行符\n并追加到当前日志的尾部
       beginningRegex: \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2},\d{3}\s.+
+```
+采集到日志服务的数据为：
+```
+__CONTENT__:2019-12-15 17:13:06,043 [main] ERROR com.test.logging.FooFactory:\njava.lang.NullPointerException\n    at com.test.logging.FooFactory.createFoo(FooFactory.java:15)\n    at com.test.logging.FooFactoryTest.test(FooFactoryTest.java:11)
+```
+
 ### 完全正则格式
 完全正则格式通常用来处理结构化的日志，指将一条完整日志按正则方式提取多个 key-value 的日志解析模式。具体请查看[完全正则格式](https://cloud.tencent.com/document/product/614/32817)
+
+假设一条日志原始数据为：
+```
+10.135.46.111 - - [22/Jan/2019:19:19:30 +0800] "GET /my/course/1 HTTP/1.1" 127.0.0.1 200 782 9703 "http://127.0.0.1/course/explore?filter%5Btype%5D=all&filter%5Bprice%5D=all&filter%5BcurrentLevelId%5D=all&orderBy=studentNum" "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:64.0) Gecko/20100101 Firefox/64.0"  0.354 0.354
+```
 LogConfig配置的参考如下：
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
   clsDetail:
     topicId: xxxxxx-xx-xx-xx-xxxxxxxx
-    #完全正则格式
+    # 完全正则格式
     logType: fullregex_log
     extractRule:
-      #正则表达式，会根据()捕获组提取对应的value
+      # 正则表达式，会根据()捕获组提取对应的value
       logRegex: (\S+)[^\[]+(\[[^:]+:\d+:\d+:\d+\s\S+)\s"(\w+)\s(\S+)\s([^"]+)"\s(\S+)\s(\d+)\s(\d+)\s(\d+)\s"([^"]+)"\s"([^"]+)"\s+(\S+)\s(\S+).*
       beginningRegex: (\S+)[^\[]+(\[[^:]+:\d+:\d+:\d+\s\S+)\s"(\w+)\s(\S+)\s([^"]+)"\s(\S+)\s(\d+)\s(\d+)\s(\d+)\s"([^"]+)"\s"([^"]+)"\s+(\S+)\s(\S+).*
-      #提取的key列表，与提取的value的一一对应
+      # 提取的key列表，与提取的value的一一对应
       keys:  ['remote_addr','time_local','request_method','request_url','http_protocol','http_host','status','request_length','body_bytes_sent','http_referer','http_user_agent','request_time','upstream_response_time']
+```
+采集到日志服务的数据为：
+```
+body_bytes_sent: 9703
+http_host: 127.0.0.1
+http_protocol: HTTP/1.1
+http_referer: http://127.0.0.1/course/explore?filter%5Btype%5D=all&filter%5Bprice%5D=all&filter%5BcurrentLevelId%5D=all&orderBy=studentNum
+http_user_agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:64.0) Gecko/20100101 Firefox/64.0
+remote_addr: 10.135.46.111
+request_length: 782
+request_method: GET
+request_time: 0.354
+request_url: /my/course/1
+status: 200
+time_local: [22/Jan/2019:19:19:30 +0800]
+upstream_response_time: 0.354
+```
+
 ### JSON格式
 JSON 格式日志会自动提取首层的 key 作为对应字段名，首层的 value 作为对应的字段值，以该方式将整条日志进行结构化处理，每条完整的日志以换行符\n为结束标识符。具体请查看[JSON 格式](https://cloud.tencent.com/document/product/614/17419)
+假设一条 JSON 日志原始数据为：
+```
+{"remote_ip":"10.135.46.111","time_local":"22/Jan/2019:19:19:34 +0800","body_sent":23,"responsetime":0.232,"upstreamtime":"0.232","upstreamhost":"unix:/tmp/php-cgi.sock","http_host":"127.0.0.1","method":"POST","url":"/event/dispatch","request":"POST /event/dispatch HTTP/1.1","xff":"-","referer":"http://127.0.0.1/my/course/4","agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:64.0) Gecko/20100101 Firefox/64.0","response_code":"200"}
+```
 LogConfig配置的参考如下：
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
   clsDetail:
     topicId: xxxxxx-xx-xx-xx-xxxxxxxx
-    #JSON格式日志
+    # JSON格式日志
     logType: json_log
+```
+采集到日志服务的数据为：
+```
+agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:64.0) Gecko/20100101 Firefox/64.0
+body_sent: 23
+http_host: 127.0.0.1
+method: POST
+referer: http://127.0.0.1/my/course/4
+remote_ip: 10.135.46.111
+request: POST /event/dispatch HTTP/1.1
+response_code: 200
+responsetime: 0.232
+time_local: 22/Jan/2019:19:19:34 +0800
+upstreamhost: unix:/tmp/php-cgi.sock
+upstreamtime: 0.232
+url: /event/dispatch
+xff: -
+```
+
+
 ### 分隔符格式
 分隔符日志是指一条日志数据可以根据指定的分隔符将整条日志进行结构化处理，每条完整的日志以换行符\n为结束标识符。日志服务在进行分隔符格式日志处理时，您需要为每个分开的字段定义唯一的 key。具体请查看[分隔符格式](https://cloud.tencent.com/document/product/614/17420)
 
-原始日志
-、、、
+假设原始日志为：
+```
 10.20.20.10 ::: [Tue Jan 22 14:49:45 CST 2019 +0800] ::: GET /online/sample HTTP/1.1 ::: 127.0.0.1 ::: 200 ::: 647 ::: 35 ::: http://127.0.0.1/
-、、、
+```
 LogConfig配置的参考如下：
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -113,9 +189,9 @@ spec:
       delimiter: ':::'
       #提取的key列表，与被分割的字段一一对应
       keys: ['IP','time','request','host','status','length','bytes','referer']
-
+```
 采集到日志服务的数据为：
-
+```
 IP: 10.20.20.10
 bytes: 35
 host: 127.0.0.1
@@ -124,12 +200,13 @@ referer: http://127.0.0.1/
 request: GET /online/sample HTTP/1.1
 status: 200
 time: [Tue Jan 22 14:49:45 CST 2019 +0800]
-
+```
 
 ## 采集日志的类型
 ### 容器标准输出
 示例1：
 采集default命名空间中的所有容器的标准输出
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -139,8 +216,10 @@ spec:
       namespace: default
       allContainers: true
  ...
+```
 示例2:
 采集production命名空间中属于ingress-gateway deployment的pod中的容器的标准输出
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -153,8 +232,10 @@ spec:
         name: ingress-gateway
         kind: deployment
   ...
+```
 示例3:
 采集production命名空间中pod标签中包含“k8s-app=nginx”的pod中的容器的标准输出
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -166,10 +247,12 @@ spec:
       includeLabels:
         k8s-app: nginx
   ...
+```
 ### 容器文件
 示例1:
 
 采集production命名空间中属于ingress-gateway deployment的pod中的nginx容器中/data/nginx/log/路径下名为access.log的文件
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -185,9 +268,12 @@ spec:
       logPath: /data/nginx/log
       filePattern: access.log
   ...
+```
 示例2:
 
 采集production命名空间中pod标签包含“k8s-app=ingress-gateway“的pod中的nginx容器中/data/nginx/log/路径下名为access.log的文件
+
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -201,10 +287,12 @@ spec:
       logPath: /data/nginx/log
       filePattern: access.log
   ...
+```
 ### 主机文件
 示例
 
 采集主机/data/路径下所有.log文件
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
 spec:
@@ -214,7 +302,7 @@ spec:
       logPath: /data
       filePattern: *.log
   ...
-
+```
 
 ## 元数据（Metadata）
 对于容器的标准输（container_stdout）以及容器文件（container_file），除了原始的日志内容， 还需要带上容器场景的元数据（例如：产生日志的容器ID）一起上报到日志服务，方便用户查看日志时追溯来源或根据容器标识、特征（例如：容器名、labels）进行检索。

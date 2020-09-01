@@ -3,7 +3,7 @@
 
 ## 创建CRD
 您只需要定义LogConfig CRD即可创建采集配置，log-agent根据LogConfig CRD的变化修改相应的CLS日志主题，并设置绑定的机器组。CRD的格式如下：
-
+```
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig                          ## 默认值
 metadata:
@@ -42,7 +42,7 @@ spec:
       filePattern: app_*.log                ## 日志文件名，支持通配符 * 和 ? ，* 表示匹配多个任意字符，? 表示匹配单个任意字符
       customLablels
         k1: v1
-
+```
 ## 日志输入类型
 ### 单行全文格式
 单行全文日志是指一行日志内容为一条完整的日志。日志服务在采集的时候，将使用换行符\n来作为一条日志日志的结束符。为了统一结构化管理，每条日志都会存在一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。具体请查看[单行文本格式](https://cloud.tencent.com/document/product/614/17421)

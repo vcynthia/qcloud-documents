@@ -16,7 +16,7 @@ spec:
       ...
   inputDetail:
     type: container_stdout                  ## 采集日志的类型，包括container_stdout（容器标准输出）、container_file（容器文件）、host_file（主机文件）
-    containerStdout:                        ## 容器标准输出
+    containerStdout:                        ## **容器标准输出**
       namespace: default                    ## 采集容器的kubernetes命名空间，如果不指定，代表所有命名空间
       allContainers: false                  ## 是否采集指定命名空间中的所有容器的标准输出
       container: xxx                        ## 满足includeLabels的Pod中的容器名，只有在指定includeLabels时使用
@@ -27,7 +27,7 @@ spec:
         name: sample-app                    ## workload的名字
         kind: deployment                    ## workload类型，支持deployment、daemonset、statefulset、job、cronjob
         container: xxx                      ## 要采集的容器名，如果不指定，代表workload Pod中的所有容器
-    containerFile:                          ## 容器内文件
+    containerFile:                          ## **容器内文件**
       namespace: default                    ## 采集容器的kubernetes命名空间
       container: xxx                        ## 采集容器名
       includeLabels:                         ## 采集包含指定label的Pod
@@ -37,7 +37,7 @@ spec:
         kind: deployment                    ## workload类型，支持deployment、daemonset、statefulset、job、cronjob
       logPath: /opt/logs                    ## 日志文件夹，不支持通配符
       filePattern: app_*.log                ## 日志文件名，支持通配符 * 和 ? ，* 表示匹配多个任意字符，? 表示匹配单个任意字符
-    hostFile:                               ## 主机文件
+    hostFile:                               ## **主机文件**
       logPath: /opt/logs                    ## 日志文件夹，支持通配符
       filePattern: app_*.log                ## 日志文件名，支持通配符 * 和 ? ，* 表示匹配多个任意字符，? 表示匹配单个任意字符
       customLablels
@@ -45,7 +45,7 @@ spec:
 
 ## 日志输入类型
 ### 单行全文格式
-单行全文日志是指一行日志内容为一条完整的日志。日志服务在采集的时候，将使用换行符\n来作为一条日志日志的结束符。为了统一结构化管理，每条日志都会存在一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。
+单行全文日志是指一行日志内容为一条完整的日志。日志服务在采集的时候，将使用换行符\n来作为一条日志日志的结束符。为了统一结构化管理，每条日志都会存在一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。具体请查看[单行文本格式](https://cloud.tencent.com/document/product/614/17421)
 LogConfig配置参考示例如下：
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
@@ -55,8 +55,7 @@ spec:
     #单行日志
     logType: minimalist_log
 ### 多行全文格式
-多行全文日志是指一条完整的日志数据可能跨占多行（例如 Java  stacktrace）。在这种情况下，以换行符\n 为日志的结束标识符就显得有些不合理，为了能让日志系统明确区分开每条日志，采用首行正则的方式进行匹配，当某行日志匹配上预先设置的正则表达式，就认为是一条日志的开头，而下一个行首出现作为该条日志的结束标识符。
-多行全文也会设置一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。
+多行全文日志是指一条完整的日志数据可能跨占多行（例如 Java  stacktrace）。在这种情况下，以换行符\n 为日志的结束标识符就显得有些不合理，为了能让日志系统明确区分开每条日志，采用首行正则的方式进行匹配，当某行日志匹配上预先设置的正则表达式，就认为是一条日志的开头，而下一个行首出现作为该条日志的结束标识符。多行全文也会设置一个默认的键值__CONTENT__，但日志数据本身不再进行日志结构化处理，也不会提取日志字段，日志属性的时间项由日志采集的时间决定。具体请查看[多行文本格式](https://cloud.tencent.com/document/product/614/17422)
 LogConfig配置的参考如下：
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
@@ -69,7 +68,7 @@ spec:
       #只有以日期时间开头的行才被认为是新一条日志的开头，否则就添加换行符\n并追加到当前日志的尾部
       beginningRegex: \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2},\d{3}\s.+
 ### 完全正则格式
-完全正则格式通常用来处理结构化的日志，指将一条完整日志按正则方式提取多个 key-value 的日志解析模式。
+完全正则格式通常用来处理结构化的日志，指将一条完整日志按正则方式提取多个 key-value 的日志解析模式。具体请查看[完全正则格式](https://cloud.tencent.com/document/product/614/32817)
 LogConfig配置的参考如下：
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
@@ -85,7 +84,7 @@ spec:
       #提取的key列表，与提取的value的一一对应
       keys:  ['remote_addr','time_local','request_method','request_url','http_protocol','http_host','status','request_length','body_bytes_sent','http_referer','http_user_agent','request_time','upstream_response_time']
 ### JSON格式
-JSON 格式日志会自动提取首层的 key 作为对应字段名，首层的 value 作为对应的字段值，以该方式将整条日志进行结构化处理，每条完整的日志以换行符\n为结束标识符。
+JSON 格式日志会自动提取首层的 key 作为对应字段名，首层的 value 作为对应的字段值，以该方式将整条日志进行结构化处理，每条完整的日志以换行符\n为结束标识符。具体请查看[JSON 格式](https://cloud.tencent.com/document/product/614/17419)
 LogConfig配置的参考如下：
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
@@ -95,7 +94,12 @@ spec:
     #JSON格式日志
     logType: json_log
 ### 分隔符格式
-分隔符日志是指一条日志数据可以根据指定的分隔符将整条日志进行结构化处理，每条完整的日志以换行符\n为结束标识符。日志服务在进行分隔符格式日志处理时，您需要为每个分开的字段定义唯一的 key。
+分隔符日志是指一条日志数据可以根据指定的分隔符将整条日志进行结构化处理，每条完整的日志以换行符\n为结束标识符。日志服务在进行分隔符格式日志处理时，您需要为每个分开的字段定义唯一的 key。具体请查看[分隔符格式](https://cloud.tencent.com/document/product/614/17420)
+
+原始日志
+、、、
+10.20.20.10 ::: [Tue Jan 22 14:49:45 CST 2019 +0800] ::: GET /online/sample HTTP/1.1 ::: 127.0.0.1 ::: 200 ::: 647 ::: 35 ::: http://127.0.0.1/
+、、、
 LogConfig配置的参考如下：
 apiVersion: cls.cloud.tencent.com/v1
 kind: LogConfig
@@ -109,6 +113,18 @@ spec:
       delimiter: ':::'
       #提取的key列表，与被分割的字段一一对应
       keys: ['IP','time','request','host','status','length','bytes','referer']
+
+采集到日志服务的数据为：
+
+IP: 10.20.20.10
+bytes: 35
+host: 127.0.0.1
+length: 647
+referer: http://127.0.0.1/
+request: GET /online/sample HTTP/1.1
+status: 200
+time: [Tue Jan 22 14:49:45 CST 2019 +0800]
+
 
 ## 采集日志的类型
 ### 容器标准输出
@@ -200,9 +216,32 @@ spec:
   ...
 
 
-## 查看CRD
-执行。。。查看当前所有的CRD采集配置
-
-执行。。。查看当前所有的CRD采集配置
-
+## 元数据（Metadata）
+对于容器的标准输（container_stdout）以及容器文件（container_file），除了原始的日志内容， 还需要带上容器场景的元数据（例如：产生日志的容器ID）一起上报到日志服务，方便用户查看日志时追溯来源或根据容器标识、特征（例如：容器名、labels）进行检索。
+<table>
+	<tr>
+		<th>字段名</th> <th>含义</th>
+	</tr>
+	<tr>
+		<td>container_id</td> <td>日志所属的容器ID</td>
+	</tr>
+	<tr>
+		<td>container_name</td> <td>日志所属的容器名称</td>
+	</tr>
+	<tr>
+		<td>image_id</td> <td>日志所属容器的镜像名称</td>
+	</tr>
+	<tr>
+		<td>labels</td> <td>日志所属 pod 的 labels</td>
+	</tr>
+	<tr>
+		<td>namespace</td> <td>日志所属 pod 的命名空间</td>
+	</tr>
+	<tr>
+		<td>pod_uid</td> <td>日志所属 pod 的 UID</td>
+	</tr>
+	<tr>
+		<td>pod_name</td> <td>日志所属 pod 的名称</td>
+	</tr>
+</table>
 

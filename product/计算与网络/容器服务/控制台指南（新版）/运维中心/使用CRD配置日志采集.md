@@ -16,7 +16,8 @@ spec:
       ...
   inputDetail:
     type: container_stdout                  ## 采集日志的类型，包括container_stdout（容器标准输出）、container_file（容器文件）、host_file（主机文件）
-    containerStdout:                        ## **容器标准输出**
+    
+    containerStdout:                        ## 容器标准输出
       namespace: default                    ## 采集容器的kubernetes命名空间，如果不指定，代表所有命名空间
       allContainers: false                  ## 是否采集指定命名空间中的所有容器的标准输出
       container: xxx                        ## 满足includeLabels的Pod中的容器名，只有在指定includeLabels时使用
@@ -27,7 +28,8 @@ spec:
         name: sample-app                    ## workload的名字
         kind: deployment                    ## workload类型，支持deployment、daemonset、statefulset、job、cronjob
         container: xxx                      ## 要采集的容器名，如果不指定，代表workload Pod中的所有容器
-    containerFile:                          ## **容器内文件**
+	
+    containerFile:                          ## 容器内文件
       namespace: default                    ## 采集容器的kubernetes命名空间
       container: xxx                        ## 采集容器名
       includeLabels:                         ## 采集包含指定label的Pod
@@ -37,7 +39,8 @@ spec:
         kind: deployment                    ## workload类型，支持deployment、daemonset、statefulset、job、cronjob
       logPath: /opt/logs                    ## 日志文件夹，不支持通配符
       filePattern: app_*.log                ## 日志文件名，支持通配符 * 和 ? ，* 表示匹配多个任意字符，? 表示匹配单个任意字符
-    hostFile:                               ## **主机文件**
+      
+    hostFile:                               ## 主机文件
       logPath: /opt/logs                    ## 日志文件夹，支持通配符
       filePattern: app_*.log                ## 日志文件名，支持通配符 * 和 ? ，* 表示匹配多个任意字符，? 表示匹配单个任意字符
       customLablels

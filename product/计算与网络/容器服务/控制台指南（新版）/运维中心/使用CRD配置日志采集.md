@@ -1,8 +1,8 @@
-﻿## 操作场景
+## 操作场景
 用户除了使用控制台配置日志采集，还可通过CRD的方式配置日志采集。CRD支持采集容器标准输出、容器文件和主机文件，支持多种日志采集格式。
 
 ## 前提条件
-在容器服务控制台>运维中心>[功能管理](https://console.cloud.tencent.com/tke2/ops/list?rid=8)中已开启日志采集，详情参见[开启日志采集](https://cloud.tencent.com/document/product/457/36771).
+已在容器服务控制台的【[功能管理](https://console.cloud.tencent.com/tke2/ops/list?rid=8)】中开启日志采集，详情参见 [开启日志采集](https://cloud.tencent.com/document/product/457/36771)。
 
 ## 创建CRD
 您只需要定义LogConfig CRD即可创建采集配置，log-agent根据LogConfig CRD的变化修改相应的CLS日志主题，并设置绑定的机器组。CRD的格式如下：

@@ -40,5 +40,5 @@
 1、找到你想访问外网的pod资进行登陆，如下图所示，
 ![](https://main.qcloudimg.com/raw/0ded00c4b178bbdf7da5932a9dc3e65d.png)
 
-2、验证此时该pod是否可以登陆外网。输入ping baidu.com，显示以下结果，证实此时已经可以访问外网。
+2、验证此时该pod是否可以登陆外网。输入ping 域名/IP，显示以下结果，证实此时已经可以访问外网。
 ![](https://main.qcloudimg.com/raw/00ae3c33ee6ec1b0a628f0ebb8cd110c.png)

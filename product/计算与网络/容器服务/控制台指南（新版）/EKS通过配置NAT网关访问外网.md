@@ -8,7 +8,7 @@
 1、找到你想访问外网的pod进行登陆，如下图所示，
 ![](https://main.qcloudimg.com/raw/0ded00c4b178bbdf7da5932a9dc3e65d.png)
 
-2、验证此时该pod是否可以登陆外网。输入ping 域名/IP，显示以下结果，证实此时无法访问外网。
+2、验证此时该pod是否可以登陆外网。输入ping 域名/IP，显示以下结果，表明无法接受数据包，证实此时无法访问外网。
 ![](https://main.qcloudimg.com/raw/6f243b16ed2f25308cb54a0e89494d5a.png)
 
 下面介绍如何通过配置NAT网关和路由表实现pod访问外网。

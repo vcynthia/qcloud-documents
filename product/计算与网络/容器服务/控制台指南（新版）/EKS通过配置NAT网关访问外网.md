@@ -1,31 +1,44 @@
-## 概述
+## 操作场景
+弹性容器服务（Elastic Kubernetes Service，EKS）支持通过配置 [NAT 网关](https://cloud.tencent.com/document/product/215/4975) 和 [路由表](https://cloud.tencent.com/document/product/215/4954) 来实现集群内服务访问外网，您可参考本文进行配置。
 
-弹性容器服务支持配置[ NAT 网关](https://cloud.tencent.com/document/product/215/4975)和[路由表](https://cloud.tencent.com/document/product/215/4954)实现集群内服务访问外网。
 
-## 配置方法
+## 操作步骤
+首先验证下pod是否可以访问外网
 
-1、登录[腾讯云私有网络- NAT 网关](https://console.cloud.tencent.com/vpc/nat)控制台，点击【新建】创建与EKS集群同地域、同 VPC 的 NAT 网关。
-![][5]
+1、找到你想访问外网的pod资进行登陆，如下图所示，
+![](https://main.qcloudimg.com/raw/0ded00c4b178bbdf7da5932a9dc3e65d.png)
 
-2、登录[腾讯云私有网络-路由表](https://console.cloud.tencent.com/vpc/route)控制台，点击【新建】创建与EKS集群同地域、同 VPC 的路由表。
+2、验证此时该pod是否可以登陆外网。输入ping 域名/IP，显示以下结果，证实此时无法访问外网。
+![](https://main.qcloudimg.com/raw/6f243b16ed2f25308cb54a0e89494d5a.png)
 
-![][3]
+下面介绍如何通过配置NAT网关和路由表实现pod访问外网。
 
-3、配置路由策略：
+### 创建 NAT 网关<span id="createNAT"></span>
+1. 登录腾讯云私有网络控制台，选择左侧导航栏中的【[NAT 网关](https://console.cloud.tencent.com/vpc/nat)】。
+2. 在 “NAT网关”页面中，单击【+新建】。
+3. 在弹出的“新建NAT网关”窗口中参考 [创建 NAT 网关](https://cloud.tencent.com/document/product/552/18186#.E6.AD.A5.E9.AA.A41.EF.BC.9A.E5.88.9B.E5.BB.BA-nat-.E7.BD.91.E5.85.B3)，创建与 EKS 集群同地域、同私有网络 VPC 的 NAT 网关。
 
-目的端：选择要访问的外网 IP 地址，支持配置 CIDR，例如填写 0.0.0.0/0 会转发所有流量到 NAT 网关；
+### 创建指向 NAT 网关的路由表<span id="createRouting"></span>
+1. 选择左侧导航栏中的【[路由表](https://console.cloud.tencent.com/vpc/route)】，进入“路由表”管理页面。
+2. 在“路由表”管理页面，单击【+新建】。
+3. 在弹出的“新建路由表”窗口中，参考以下信息创建与 EKS 集群同地域、同 VPC 的路由表。如下图所示：
+![](https://main.qcloudimg.com/raw/34967197070bfbacc3a93c8ac92b234d.png)
+主要参数信息如下：
+ - **目的端**：选择需访问的外网 IP 地址，支持配置 CIDR。例如，填写 `0.0.0.0/0` 会转发所有流量到 NAT 网关。
+ - **下一跳类型**：选择“NAT 网关”。
+ - **下一跳**：选择在 [创建 NAT 网关](#createNAT) 步骤中已创建的 NAT 网关。
+4. 单击【创建】即可。
 
-下一跳类型：选择 【 NAT 网关】类型；
+### 关联子网至路由表
+完成配置路由后，需选择子网关联到该路由表，被选择子网内的访问 Internet 的流量将指向 NAT 网关。步骤如下：
+1. 在“路由表”页面中，选择 [创建指向 NAT 网关的路由表](#createRouting) 步骤中已创建路由表所在行右侧的【关联子网】。
+2. 在弹出的“关联子网”窗口中，勾选需关联子网并单击【确定】即可。
+完成路由表关联子网后，同 VPC 的资源即可以通过 NAT 网关的外网 IP 访问 Internet。
 
-下一跳：选择第一步创建的 NAT 网关；
+## 验证访问外网
 
-![][4]
+1、找到你想访问外网的pod资进行登陆，如下图所示，
+![](https://main.qcloudimg.com/raw/0ded00c4b178bbdf7da5932a9dc3e65d.png)
 
-4、完成配置路由后，选择子网关联到该路由表，被选择子网内的访问 Internet 的流量将指向 NAT 网关。
-![][1]
-5、完成路由表关联子网后，同 VPC 的资源即可以通过 NAT 网关的外网 IP 访问 Internet。
-
-[1]:https://main.qcloudimg.com/raw/7b44c378307350f2d9c75218747bd47b.png
-[3]:https://main.qcloudimg.com/raw/c9e578f4cffee808b5f5ab36e69372cf.png
-[4]:https://main.qcloudimg.com/raw/b5fe2a0369befd9012f892240d22bc10.png
-[5]:https://main.qcloudimg.com/raw/55da9bb3a9284d60625dd9ec1908b4ac.png
+2、验证此时该pod是否可以登陆外网。输入ping baidu.com，显示以下结果，证实此时已经可以访问外网。
+![](https://main.qcloudimg.com/raw/00ae3c33ee6ec1b0a628f0ebb8cd110c.png)
